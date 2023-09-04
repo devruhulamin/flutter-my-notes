@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:mynotes/views/email_verifi_view.dart';
+import 'package:mynotes/views/login.dart';
+import 'package:mynotes/views/registraion.dart';
 import 'firebase_options.dart';
 
 void main() {
@@ -12,6 +15,10 @@ void main() {
       useMaterial3: true,
     ),
     home: const HomePage(),
+    routes: {
+      "/login/": (context) => const LoginPage(),
+      "/register/": (context) => const Registration(),
+    },
   ));
 }
 
@@ -51,16 +58,19 @@ class _HomePageState extends State<HomePage> {
             switch (snapshot.connectionState) {
               case ConnectionState.done:
                 final user = FirebaseAuth.instance.currentUser;
+                user?.reload();
                 final isEmailVerified = user?.emailVerified ?? false;
-                if (isEmailVerified) {
-                  print("User Emaail is Verified");
+                if (user != null) {
+                  if (isEmailVerified) {
+                    return const Text("Home page");
+                  }
+                  return const VerifiEmailPage();
                 } else {
-                  print("User is Not Verfied");
+                  return const LoginPage();
                 }
-                return const Text("Done");
 
               default:
-                return const Text("Loading.......");
+                return const CircularProgressIndicator();
             }
           },
         ));
