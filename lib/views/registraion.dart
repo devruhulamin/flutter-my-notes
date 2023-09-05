@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as devtools show log;
 
 import 'package:mynotes/constans/routes.dart';
+import 'package:mynotes/utilities/show_error_dialog.dart';
 
 class Registration extends StatefulWidget {
   const Registration({super.key});
@@ -31,6 +32,10 @@ class _RegistrationState extends State<Registration> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Register"),
+        centerTitle: true,
+      ),
       body: Column(
         children: [
           TextField(
@@ -57,13 +62,18 @@ class _RegistrationState extends State<Registration> {
                   final usercredentials = await FirebaseAuth.instance
                       .createUserWithEmailAndPassword(
                           email: email, password: password);
-                  devtools.log(usercredentials.toString());
+                  final currentUser = FirebaseAuth.instance.currentUser;
+                  currentUser?.sendEmailVerification();
                   if (context.mounted) {
-                    Navigator.of(context)
-                        .pushNamedAndRemoveUntil(notesRoute, (route) => false);
+                    Navigator.of(context).pushNamed(emailVerifyRoute);
                   }
                 } on FirebaseAuthException catch (e) {
-                  devtools.log(e.toString());
+                  showErrorDialog(context, e.code);
+                } catch (e) {
+                  showErrorDialog(
+                    context,
+                    "Error: ${e.toString()}",
+                  );
                 }
               },
               child: const Text("Register")),
