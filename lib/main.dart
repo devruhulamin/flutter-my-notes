@@ -20,6 +20,7 @@ void main() {
     routes: {
       "/login/": (context) => const LoginPage(),
       "/register/": (context) => const Registration(),
+      "/notes/": (context) => const NotesPage(),
     },
   ));
 }
@@ -62,7 +63,7 @@ class _HomePageState extends State<HomePage> {
             final isEmailVerified = user?.emailVerified ?? false;
             if (user != null) {
               if (isEmailVerified) {
-                return const MainPage();
+                return const NotesPage();
               }
               return const VerifiEmailPage();
             } else {
@@ -79,14 +80,14 @@ class _HomePageState extends State<HomePage> {
 
 enum MainActivity { logout }
 
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+class NotesPage extends StatefulWidget {
+  const NotesPage({super.key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  State<NotesPage> createState() => _NotesPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _NotesPageState extends State<NotesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

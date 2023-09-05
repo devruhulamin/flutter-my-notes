@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer' as devtools show log;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -50,10 +51,18 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () async {
                 final email = _email.text;
                 final password = _password.text;
-                final response = await FirebaseAuth.instance
-                    .signInWithEmailAndPassword(
-                        email: email, password: password);
-                print(response);
+                try {
+                  final usercreditails = await FirebaseAuth.instance
+                      .signInWithEmailAndPassword(
+                          email: email, password: password);
+                  devtools.log(usercreditails.toString());
+                  if (context.mounted) {
+                    Navigator.of(context)
+                        .pushNamedAndRemoveUntil("/notes/", (route) => false);
+                  }
+                } on FirebaseAuthException catch (e) {
+                  devtools.log(e.toString());
+                }
               },
               child: const Text("Login")),
           TextButton(
