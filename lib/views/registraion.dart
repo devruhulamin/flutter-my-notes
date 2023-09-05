@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer' as devtools show log;
 
 class Registration extends StatefulWidget {
   const Registration({super.key});
@@ -51,12 +52,16 @@ class _RegistrationState extends State<Registration> {
                 try {
                   final email = _email.text;
                   final password = _password.text;
-                  final response = await FirebaseAuth.instance
+                  final usercredentials = await FirebaseAuth.instance
                       .createUserWithEmailAndPassword(
                           email: email, password: password);
-                  // print(response);
+                  devtools.log(usercredentials.toString());
+                  if (context.mounted) {
+                    Navigator.of(context)
+                        .pushNamedAndRemoveUntil("/notes/", (route) => false);
+                  }
                 } on FirebaseAuthException catch (e) {
-                  print("Error Code ?? ${e.code}");
+                  devtools.log(e.toString());
                 }
               },
               child: const Text("Register")),
