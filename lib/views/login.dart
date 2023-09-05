@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as devtools show log;
 
 import 'package:mynotes/constans/routes.dart';
+import 'package:mynotes/utilities/show_error_dialog.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -63,7 +64,15 @@ class _LoginPageState extends State<LoginPage> {
                         .pushNamedAndRemoveUntil(notesRoute, (route) => false);
                   }
                 } on FirebaseAuthException catch (e) {
-                  devtools.log(e.toString());
+                  await showErrorDialog(
+                    context,
+                    e.code,
+                  );
+                } catch (e) {
+                  await showErrorDialog(
+                    context,
+                    e.toString(),
+                  );
                 }
               },
               child: const Text("Login")),
