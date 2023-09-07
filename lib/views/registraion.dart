@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as devtools show log;
 
 import 'package:mynotes/constans/routes.dart';
 import 'package:mynotes/utilities/show_error_dialog.dart';
@@ -59,9 +58,8 @@ class _RegistrationState extends State<Registration> {
                 try {
                   final email = _email.text;
                   final password = _password.text;
-                  final usercredentials = await FirebaseAuth.instance
-                      .createUserWithEmailAndPassword(
-                          email: email, password: password);
+                  await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                      email: email, password: password);
                   final currentUser = FirebaseAuth.instance.currentUser;
                   currentUser?.sendEmailVerification();
                   if (context.mounted) {

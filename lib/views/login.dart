@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as devtools show log;
 
 import 'package:mynotes/constans/routes.dart';
 import 'package:mynotes/utilities/show_error_dialog.dart';
@@ -59,13 +58,18 @@ class _LoginPageState extends State<LoginPage> {
                 final email = _email.text;
                 final password = _password.text;
                 try {
-                  final usercreditails = await FirebaseAuth.instance
-                      .signInWithEmailAndPassword(
-                          email: email, password: password);
-                  devtools.log(usercreditails.toString());
-                  if (context.mounted) {
+                  await FirebaseAuth.instance.signInWithEmailAndPassword(
+                      email: email, password: password);
+
+                  final isVerified =
+                      FirebaseAuth.instance.currentUser?.emailVerified ?? false;
+
+                  if (context.mounted && isVerified) {
                     Navigator.of(context)
                         .pushNamedAndRemoveUntil(notesRoute, (route) => false);
+                  } else if (context.mounted) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                        emailVerifyRoute, (route) => false);
                   }
                 } on FirebaseAuthException catch (e) {
                   await showErrorDialog(
