@@ -1,12 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/constans/routes.dart';
+import 'package:mynotes/services/auth/auth_services.dart';
 import 'package:mynotes/views/email_verifi_view.dart';
 import 'package:mynotes/views/login.dart';
 import 'package:mynotes/views/notes_view.dart';
 import 'package:mynotes/views/registraion.dart';
-import 'firebase_options.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized;
@@ -54,17 +52,13 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      ),
+      future: AuthServices.firebase().initialize(),
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.done:
-            final user = FirebaseAuth.instance.currentUser;
-            user?.reload();
-            final isEmailVerified = user?.emailVerified ?? false;
+            final user = AuthServices.firebase().currentUser;
             if (user != null) {
-              if (isEmailVerified) {
+              if (user.isEmailverified) {
                 return const NotesPage();
               }
               return const VerifiEmailPage();

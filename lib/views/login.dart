@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 import 'package:mynotes/constans/routes.dart';
+import 'package:mynotes/services/auth/auth_exception.dart';
+import 'package:mynotes/services/auth/auth_services.dart';
 import 'package:mynotes/utilities/show_error_dialog.dart';
 
 class LoginPage extends StatefulWidget {
@@ -57,29 +57,52 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () async {
                 final email = _email.text;
                 final password = _password.text;
+
                 try {
-                  await FirebaseAuth.instance.signInWithEmailAndPassword(
-                      email: email, password: password);
+                  await AuthServices.firebase()
+                      .login(email: email, password: password);
 
-                  final isVerified =
-                      FirebaseAuth.instance.currentUser?.emailVerified ?? false;
+                  await AuthServices.firebase().sendEmailVerification();
+                  final user = AuthServices.firebase().currentUser;
 
-                  if (context.mounted && isVerified) {
+                  if (context.mounted && user != null && user.isEmailverified) {
                     Navigator.of(context)
                         .pushNamedAndRemoveUntil(notesRoute, (route) => false);
                   } else if (context.mounted) {
                     Navigator.of(context).pushNamedAndRemoveUntil(
                         emailVerifyRoute, (route) => false);
                   }
-                } on FirebaseAuthException catch (e) {
+                } on WrongPasswordException {
+                  if (!context.mounted) {
+                    return;
+                  }
                   await showErrorDialog(
                     context,
-                    e.code,
+                    "Given Password is Wrong!!",
                   );
-                } catch (e) {
+                } on InvalidEmailException {
+                  if (!context.mounted) {
+                    return;
+                  }
                   await showErrorDialog(
                     context,
-                    e.toString(),
+                    "Email is Invalid",
+                  );
+                } on UserNotFoundException {
+                  if (!context.mounted) {
+                    return;
+                  }
+                  await showErrorDialog(
+                    context,
+                    "User Not Found",
+                  );
+                } on GenericsAuthException {
+                  if (!context.mounted) {
+                    return;
+                  }
+                  await showErrorDialog(
+                    context,
+                    "Something Went Wrong",
                   );
                 }
               },

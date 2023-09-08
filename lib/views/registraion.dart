@@ -1,7 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:mynotes/constans/routes.dart';
+import 'package:mynotes/services/auth/auth_exception.dart';
+import 'package:mynotes/services/auth/auth_services.dart';
 import 'package:mynotes/utilities/show_error_dialog.dart';
 
 class Registration extends StatefulWidget {
@@ -58,19 +59,35 @@ class _RegistrationState extends State<Registration> {
                 try {
                   final email = _email.text;
                   final password = _password.text;
-                  await FirebaseAuth.instance.createUserWithEmailAndPassword(
-                      email: email, password: password);
-                  final currentUser = FirebaseAuth.instance.currentUser;
-                  currentUser?.sendEmailVerification();
+                  await AuthServices.firebase()
+                      .createUser(email: email, password: password);
+                  await AuthServices.firebase().sendEmailVerification();
                   if (context.mounted) {
                     Navigator.of(context).pushNamed(emailVerifyRoute);
                   }
-                } on FirebaseAuthException catch (e) {
-                  showErrorDialog(context, e.code);
-                } catch (e) {
-                  showErrorDialog(
+                } on EmailAlreadyInUseException {
+                  if (!context.mounted) {
+                    return;
+                  }
+                  await showErrorDialog(
                     context,
-                    "Error: ${e.toString()}",
+                    "Email Already Haven An Account!",
+                  );
+                } on InvalidEmailException {
+                  if (!context.mounted) {
+                    return;
+                  }
+                  await showErrorDialog(
+                    context,
+                    "Email is not Valid",
+                  );
+                } on WeakPasswordException {
+                  if (!context.mounted) {
+                    return;
+                  }
+                  await showErrorDialog(
+                    context,
+                    "Password is Weak Give Password 6 char long",
                   );
                 }
               },
