@@ -7,10 +7,24 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
 class NoteServices {
+  NoteServices._sharedInstance();
+  static final _shared = NoteServices._sharedInstance();
+
+  factory NoteServices() => _shared;
+
   Database? _db;
   List<DatabaseNote> _notes = [];
   final _notesStreamController =
       StreamController<List<DatabaseNote>>.broadcast();
+
+  Stream<List<DatabaseNote>> get getUserAllNotes =>
+      _notesStreamController.stream;
+
+  Future<void> _ensureDbIsOpen() async {
+    try {
+      await open();
+    } on DatabaseAlreadyOpen {}
+  }
 
   Future<DatabaseUser> getOrCreateUser({required String email}) async {
     try {
@@ -33,6 +47,7 @@ class NoteServices {
   // updating a note
   Future<DatabaseNote> updateNote(
       {required DatabaseNote note, required String text}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     await getNote(id: note.id);
 
@@ -50,6 +65,7 @@ class NoteServices {
 
   // get allnotes
   Future<Iterable<DatabaseNote>> getAllNotes() async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final notes = await db.query(noteTable);
     final result = notes.map((note) => DatabaseNote.fromRow(note));
@@ -58,6 +74,7 @@ class NoteServices {
 
   // get a single note by its id
   Future<DatabaseNote> getNote({required int id}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final note =
         await db.query(noteTable, limit: 1, where: 'id = ?', whereArgs: [id]);
@@ -73,6 +90,7 @@ class NoteServices {
 
   // delete all notes
   Future<int> deleteAllNotes() async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deletedCount = await db.delete(noteTable);
     _notes = [];
@@ -82,6 +100,7 @@ class NoteServices {
 
 // deleteing a note by id
   Future<void> deleteNote({required int id}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deletedCount =
         await db.delete(noteTable, where: 'id = ?', whereArgs: [id]);
@@ -94,6 +113,7 @@ class NoteServices {
 
 // insert a new to database with its owner
   Future<DatabaseNote> createNote({required DatabaseUser owner}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final user = await getUser(email: owner.email);
     if (user != owner) {
@@ -118,6 +138,7 @@ class NoteServices {
 
 // delete the user from database
   Future<void> deleteUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deleteCount = await db.delete(userTable,
         where: 'email = ?', whereArgs: [email.toLowerCase()]);
@@ -129,6 +150,7 @@ class NoteServices {
 
   // get the user from database
   Future<DatabaseUser> getUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final result = await db.query(
       userTable,
@@ -145,6 +167,7 @@ class NoteServices {
 
 // creating a user in database if user not exits
   Future<DatabaseUser> createUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final checkUser = await db.query(
       userTable,
