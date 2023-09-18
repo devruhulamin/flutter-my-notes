@@ -81,7 +81,7 @@ class MockAuthProvider implements AuthProvider {
     if (!isInitilize) throw NotInitilizeException();
     if (email == "foo@gmail.com") throw UserNotFoundException();
     if (password == "foobarbaz") throw WrongPasswordException();
-    const user = AuthUser(isEmailverified: false);
+    const user = AuthUser(email: 'foo@gmail.com', isEmailverified: false);
     return user;
   }
 
@@ -96,6 +96,6 @@ class MockAuthProvider implements AuthProvider {
   Future<void> sendEmailVerification() async {
     if (!isInitilize) throw NotInitilizeException();
     if (_user == null) throw UserNotFoundException();
-    _user = const AuthUser(isEmailverified: true);
+    _user = const AuthUser(email: 'foo@gmail.com', isEmailverified: true);
   }
 }

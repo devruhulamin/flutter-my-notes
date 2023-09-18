@@ -5,7 +5,7 @@ import 'package:mynotes/enums/menu_action.dart';
 import 'package:mynotes/services/auth/auth_services.dart';
 import 'dart:developer' as devtools show log;
 
-import '../constans/routes.dart';
+import '../../constans/routes.dart';
 
 class NotesPage extends StatefulWidget {
   const NotesPage({super.key});
@@ -35,6 +35,11 @@ class _NotesPageState extends State<NotesPage> {
       appBar: AppBar(
         title: const Text("Main Page"),
         actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(newNoteView);
+              },
+              icon: const Icon(Icons.add)),
           PopupMenuButton<MainActivity>(
             onSelected: (value) async {
               switch (value) {
