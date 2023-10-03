@@ -27,6 +27,7 @@ class _NewNoteState extends State<NewNote> {
       return;
     }
     final text = _textEditingController.text;
+
     await _noteServices.updateNote(note: note, text: text);
   }
 
@@ -37,6 +38,7 @@ class _NewNoteState extends State<NewNote> {
 
   Future<DatabaseNote> createNewNote() async {
     final existingNote = _note;
+
     if (existingNote != null) {
       return existingNote;
     }
@@ -56,6 +58,7 @@ class _NewNoteState extends State<NewNote> {
 
   void saveNoteIfTextIsNotEmpty() async {
     final note = _note;
+
     final text = _textEditingController.text;
     if (text.isNotEmpty && note != null) {
       await _noteServices.updateNote(note: note, text: text);
@@ -63,7 +66,7 @@ class _NewNoteState extends State<NewNote> {
   }
 
   @override
-  void dispose() {
+  void dispose() async {
     deleteNoteIfTextIsEmpty();
     saveNoteIfTextIsNotEmpty();
     super.dispose();

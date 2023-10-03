@@ -7,15 +7,22 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
 class NoteServices {
-  NoteServices._sharedInstance();
+  NoteServices._sharedInstance() {
+    print("_shared Instance called");
+    _notesStreamController = StreamController<List<DatabaseNote>>.broadcast(
+      onListen: () {
+        print(_notes);
+        _notesStreamController.sink.add(_notes);
+      },
+    );
+  }
   static final _shared = NoteServices._sharedInstance();
 
   factory NoteServices() => _shared;
 
   Database? _db;
   List<DatabaseNote> _notes = [];
-  final _notesStreamController =
-      StreamController<List<DatabaseNote>>.broadcast();
+  late final StreamController<List<DatabaseNote>> _notesStreamController;
 
   Stream<List<DatabaseNote>> get getUserAllNotes =>
       _notesStreamController.stream;
@@ -41,6 +48,7 @@ class NoteServices {
   Future<void> _cacheNotes() async {
     final allNotes = await getAllNotes();
     _notes = allNotes.toList();
+
     _notesStreamController.add(_notes);
   }
 
@@ -51,8 +59,10 @@ class NoteServices {
     final db = _getDatabaseOrThrow();
     await getNote(id: note.id);
 
-    final updateCount = await db
-        .update(noteTable, {textColumn: text, isSyncWithCloudColumn: 0});
+    final updateCount = await db.update(
+        noteTable, {textColumn: text, isSyncWithCloudColumn: 0},
+        where: 'id = ?', whereArgs: [note.id]);
+    print("Here iam updated count $updateCount");
     if (updateCount == 0) {
       throw CouldNotUpdateNote();
     }
@@ -81,6 +91,7 @@ class NoteServices {
     if (note.isEmpty) {
       throw CouldNotFindNote();
     }
+
     final newNote = DatabaseNote.fromRow(note.first);
     _notes.removeWhere((element) => element.id == newNote.id);
     _notes.add(newNote);
@@ -178,11 +189,14 @@ class NoteServices {
     if (checkUser.isNotEmpty) {
       throw CouldNotCreateUser();
     }
-
-    final userId =
-        await db.insert(userTable, {emailColumn: email.toLowerCase()});
-
-    return DatabaseUser(id: userId, email: email);
+    try {
+      final userId = await db.insert(
+          userTable, {emailColumn: email.toLowerCase()},
+          conflictAlgorithm: ConflictAlgorithm.replace);
+      return DatabaseUser(id: userId, email: email);
+    } catch (e) {
+      rethrow;
+    }
   }
 
 // trying to getting database if not then throw exception
@@ -268,7 +282,7 @@ class DatabaseNote {
         isSyncWithCloud = other[isSyncWithCloudColumn] == 0 ? false : true;
   @override
   String toString() {
-    return 'Note: $id User : $userId isSync: $isSyncWithCloud';
+    return 'Note: $id User : $userId Text: $text';
   }
 
   @override
