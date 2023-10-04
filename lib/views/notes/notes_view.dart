@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:mynotes/crud/note_services.dart';
 import 'package:mynotes/enums/menu_action.dart';
 import 'package:mynotes/services/auth/auth_services.dart';
+import 'package:mynotes/utilities/dialogs/show_log_out_dialog.dart';
+import 'package:mynotes/views/notes/notes_list_view.dart';
 import 'dart:developer' as devtools show log;
 
 import '../../constans/routes.dart';
@@ -75,18 +77,11 @@ class _NotesPageState extends State<NotesPage> {
                     case ConnectionState.active:
                       if (snapshot.hasData) {
                         final allnotes = snapshot.data!;
-                        return ListView.builder(
-                          itemCount: allnotes.length,
-                          itemBuilder: (context, index) {
-                            final note = allnotes[index];
-                            return ListTile(
-                              title: Text(
-                                note.text,
-                                maxLines: 1,
-                                softWrap: true,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            );
+                        print(allnotes);
+                        return NoteListView(
+                          notes: allnotes,
+                          onDeleteNote: (note) async {
+                            await _noteServices.deleteNote(id: note.id);
                           },
                         );
                       } else {
@@ -104,30 +99,4 @@ class _NotesPageState extends State<NotesPage> {
       ),
     );
   }
-}
-
-Future<bool> showLogoutDialog(BuildContext context) {
-  return showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text("Logout"),
-        content: const Text("Are You Sure Want To,Logout?"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-            child: const Text("Logout"),
-          ),
-        ],
-      );
-    },
-  ).then((value) => value ?? false);
 }

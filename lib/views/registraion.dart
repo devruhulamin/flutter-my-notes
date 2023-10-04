@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mynotes/constans/routes.dart';
 import 'package:mynotes/services/auth/auth_exception.dart';
 import 'package:mynotes/services/auth/auth_services.dart';
-import 'package:mynotes/utilities/show_error_dialog.dart';
+import 'package:mynotes/utilities/dialogs/error_dialog.dart';
 
 class Registration extends StatefulWidget {
   const Registration({super.key});

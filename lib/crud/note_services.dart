@@ -8,7 +8,6 @@ import 'package:sqflite/sqflite.dart';
 
 class NoteServices {
   NoteServices._sharedInstance() {
-    print("_shared Instance called");
     _notesStreamController = StreamController<List<DatabaseNote>>.broadcast(
       onListen: () {
         print(_notes);
@@ -30,7 +29,9 @@ class NoteServices {
   Future<void> _ensureDbIsOpen() async {
     try {
       await open();
-    } on DatabaseAlreadyOpen {}
+    } on DatabaseAlreadyOpen {
+      throw Exception("Database is Already Open");
+    }
   }
 
   Future<DatabaseUser> getOrCreateUser({required String email}) async {
@@ -62,7 +63,6 @@ class NoteServices {
     final updateCount = await db.update(
         noteTable, {textColumn: text, isSyncWithCloudColumn: 0},
         where: 'id = ?', whereArgs: [note.id]);
-    print("Here iam updated count $updateCount");
     if (updateCount == 0) {
       throw CouldNotUpdateNote();
     }
@@ -79,6 +79,7 @@ class NoteServices {
     final db = _getDatabaseOrThrow();
     final notes = await db.query(noteTable);
     final result = notes.map((note) => DatabaseNote.fromRow(note));
+    print(result);
     return result;
   }
 
