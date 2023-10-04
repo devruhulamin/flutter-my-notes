@@ -77,7 +77,7 @@ class _NotesPageState extends State<NotesPage> {
                     case ConnectionState.active:
                       if (snapshot.hasData) {
                         final allnotes = snapshot.data!;
-                        print(allnotes);
+
                         return NoteListView(
                           notes: allnotes,
                           onDeleteNote: (note) async {

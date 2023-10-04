@@ -10,7 +10,6 @@ class NoteServices {
   NoteServices._sharedInstance() {
     _notesStreamController = StreamController<List<DatabaseNote>>.broadcast(
       onListen: () {
-        print(_notes);
         _notesStreamController.sink.add(_notes);
       },
     );
@@ -30,7 +29,7 @@ class NoteServices {
     try {
       await open();
     } on DatabaseAlreadyOpen {
-      throw Exception("Database is Already Open");
+      // throw Exception("Database is Already Open");
     }
   }
 
@@ -79,7 +78,6 @@ class NoteServices {
     final db = _getDatabaseOrThrow();
     final notes = await db.query(noteTable);
     final result = notes.map((note) => DatabaseNote.fromRow(note));
-    print(result);
     return result;
   }
 
