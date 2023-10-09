@@ -4,6 +4,7 @@ import 'package:mynotes/crud/note_services.dart';
 import 'package:mynotes/enums/menu_action.dart';
 import 'package:mynotes/services/auth/auth_services.dart';
 import 'package:mynotes/utilities/dialogs/show_log_out_dialog.dart';
+import 'package:mynotes/views/notes/create_or_update_note.dart';
 import 'package:mynotes/views/notes/notes_list_view.dart';
 import 'dart:developer' as devtools show log;
 
@@ -33,7 +34,7 @@ class _NotesPageState extends State<NotesPage> {
         actions: [
           IconButton(
               onPressed: () {
-                Navigator.of(context).pushNamed(newNoteView);
+                Navigator.of(context).pushNamed(createOrUpdateNote);
               },
               icon: const Icon(Icons.add)),
           PopupMenuButton<MainActivity>(
@@ -79,6 +80,10 @@ class _NotesPageState extends State<NotesPage> {
                         final allnotes = snapshot.data!;
 
                         return NoteListView(
+                          onNoteTap: (note) {
+                            Navigator.of(context)
+                                .pushNamed(createOrUpdateNote, arguments: note);
+                          },
                           notes: allnotes,
                           onDeleteNote: (note) async {
                             await _noteServices.deleteNote(id: note.id);

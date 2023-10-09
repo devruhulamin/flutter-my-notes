@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:mynotes/crud/note_services.dart';
 import 'package:mynotes/services/auth/auth_services.dart';
+import 'package:mynotes/utilities/generics/get_arguments.dart';
 
-class NewNote extends StatefulWidget {
-  const NewNote({super.key});
+class CreateOrUpdateNote extends StatefulWidget {
+  const CreateOrUpdateNote({super.key});
 
   @override
-  State<NewNote> createState() => _NewNoteState();
+  State<CreateOrUpdateNote> createState() => _CreateOrUpdateNoteState();
 }
 
-class _NewNoteState extends State<NewNote> {
+class _CreateOrUpdateNoteState extends State<CreateOrUpdateNote> {
   DatabaseNote? _note;
   late final NoteServices _noteServices;
   late final TextEditingController _textEditingController;
@@ -36,9 +37,14 @@ class _NewNoteState extends State<NewNote> {
     _textEditingController.addListener(_texeditingControllerListener);
   }
 
-  Future<DatabaseNote> createNewNote() async {
+  Future<DatabaseNote> createOrGetExistingNote(BuildContext context) async {
     final existingNote = _note;
-
+    final widgetNote = context.getArguments<DatabaseNote>();
+    if (widgetNote != null) {
+      _textEditingController.text = widgetNote.text;
+      _note = widgetNote;
+      return widgetNote;
+    }
     if (existingNote != null) {
       return existingNote;
     }
@@ -46,6 +52,7 @@ class _NewNoteState extends State<NewNote> {
     final email = currentUser.email!;
     final owner = await _noteServices.getUser(email: email);
     final newNote = await _noteServices.createNote(owner: owner);
+    _note = newNote;
     return newNote;
   }
 
@@ -79,11 +86,11 @@ class _NewNoteState extends State<NewNote> {
         title: const Text("New Note"),
       ),
       body: FutureBuilder(
-        future: createNewNote(),
+        future: createOrGetExistingNote(context),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
-              _note = snapshot.data;
+              // _note = snapshot.data;
               _setupTexeditingControllerListener();
               return TextField(
                 controller: _textEditingController,
