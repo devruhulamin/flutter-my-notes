@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mynotes/constans/routes.dart';
 import 'package:mynotes/services/auth/auth_exception.dart';
-import 'package:mynotes/services/auth/auth_services.dart';
+import 'package:mynotes/services/auth/bloc/auth_bloc.dart';
+import 'package:mynotes/services/auth/bloc/auth_event.dart';
 import 'package:mynotes/utilities/dialogs/error_dialog.dart';
 
 class LoginPage extends StatefulWidget {
@@ -59,19 +61,9 @@ class _LoginPageState extends State<LoginPage> {
                 final password = _password.text;
 
                 try {
-                  await AuthServices.firebase()
-                      .login(email: email, password: password);
-
-                  await AuthServices.firebase().sendEmailVerification();
-                  final user = AuthServices.firebase().currentUser;
-
-                  if (context.mounted && user != null && user.isEmailverified) {
-                    Navigator.of(context)
-                        .pushNamedAndRemoveUntil(notesRoute, (route) => false);
-                  } else if (context.mounted) {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                        emailVerifyRoute, (route) => false);
-                  }
+                  context
+                      .read<AuthBloc>()
+                      .add(AuthEventLogin(email: email, password: password));
                 } on WrongPasswordException {
                   if (!context.mounted) {
                     return;

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mynotes/constans/routes.dart';
 import 'package:mynotes/services/auth/auth_services.dart';
+import 'package:mynotes/services/auth/bloc/auth_bloc.dart';
+import 'package:mynotes/services/auth/bloc/auth_event.dart';
+import 'package:mynotes/services/auth/bloc/auth_state.dart';
+import 'package:mynotes/services/auth/firebase_auth_provider.dart';
 import 'package:mynotes/views/email_verifi_view.dart';
 import 'package:mynotes/views/login.dart';
 import 'package:mynotes/views/notes/create_or_update_note.dart';
@@ -16,7 +21,10 @@ void main() {
           seedColor: const Color.fromARGB(255, 10, 33, 239)),
       useMaterial3: true,
     ),
-    home: const HomePage(),
+    home: BlocProvider<AuthBloc>(
+      create: (context) => AuthBloc(FirebaseAuthProvider()),
+      child: const HomePage(),
+    ),
     routes: {
       loginRoute: (context) => const LoginPage(),
       registerRoute: (context) => const Registration(),
@@ -53,23 +61,21 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: AuthServices.firebase().initialize(),
-      builder: (context, snapshot) {
-        switch (snapshot.connectionState) {
-          case ConnectionState.done:
-            final user = AuthServices.firebase().currentUser;
-            if (user != null) {
-              if (user.isEmailverified) {
-                return const NotesPage();
-              }
-              return const VerifiEmailPage();
-            } else {
-              return const LoginPage();
-            }
-
-          default:
-            return const CircularProgressIndicator();
+    context.read<AuthBloc>().add(const AuthEventInitilize());
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is AuthStateLoggedIn) {
+          return const NotesPage();
+        } else if (state is AuthStateNeedsVerification) {
+          return const VerifiEmailPage();
+        } else if (state is AuthStateLoggenOut) {
+          return const LoginPage();
+        } else {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
         }
       },
     );
