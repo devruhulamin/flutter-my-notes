@@ -26,10 +26,6 @@ void main() {
       child: const HomePage(),
     ),
     routes: {
-      loginRoute: (context) => const LoginPage(),
-      registerRoute: (context) => const Registration(),
-      notesRoute: (context) => const NotesPage(),
-      emailVerifyRoute: (context) => const VerifiEmailPage(),
       createOrUpdateNote: (context) => const CreateOrUpdateNote(),
     },
   ));
@@ -70,6 +66,8 @@ class _HomePageState extends State<HomePage> {
           return const VerifiEmailPage();
         } else if (state is AuthStateLoggenOut) {
           return const LoginPage();
+        } else if (state is AuthStateRegistering) {
+          return const Registration();
         } else {
           return const Scaffold(
             body: Center(

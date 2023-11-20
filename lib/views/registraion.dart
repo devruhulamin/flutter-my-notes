@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-
-import 'package:mynotes/constans/routes.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mynotes/services/auth/auth_exception.dart';
-import 'package:mynotes/services/auth/auth_services.dart';
+import 'package:mynotes/services/auth/bloc/auth_bloc.dart';
+import 'package:mynotes/services/auth/bloc/auth_event.dart';
+import 'package:mynotes/services/auth/bloc/auth_state.dart';
 import 'package:mynotes/utilities/dialogs/error_dialog.dart';
 
 class Registration extends StatefulWidget {
@@ -31,74 +32,82 @@ class _RegistrationState extends State<Registration> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Register"),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          TextField(
-            controller: _email,
-            decoration: const InputDecoration(
-              hintText: "Enter Your Email",
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) async {
+        if (state is AuthStateRegistering) {
+          if (state.exception is EmailAlreadyInUseException) {
+            if (!context.mounted) {
+              return;
+            }
+            await showErrorDialog(
+              context,
+              "Email Already Haven An Account!",
+            );
+          } else if (state.exception is InvalidEmailException) {
+            if (!context.mounted) {
+              return;
+            }
+            await showErrorDialog(
+              context,
+              "Email is not Valid",
+            );
+          } else if (state.exception is WeakPasswordException) {
+            if (!context.mounted) {
+              return;
+            }
+            await showErrorDialog(
+              context,
+              "Password is Weak Give Password 6 char long",
+            );
+          } else if (state.exception is GenericsAuthException) {
+            if (!context.mounted) {
+              return;
+            }
+            await showErrorDialog(
+              context,
+              "Fail To Register ",
+            );
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Register"),
+          centerTitle: true,
+        ),
+        body: Column(
+          children: [
+            TextField(
+              controller: _email,
+              decoration: const InputDecoration(
+                hintText: "Enter Your Email",
+              ),
+              keyboardType: TextInputType.emailAddress,
             ),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          TextField(
-            controller: _password,
-            decoration: const InputDecoration(
-              hintText: "Enter Your Password",
+            TextField(
+              controller: _password,
+              decoration: const InputDecoration(
+                hintText: "Enter Your Password",
+              ),
+              obscureText: true,
+              enableSuggestions: false,
+              autocorrect: false,
             ),
-            obscureText: true,
-            enableSuggestions: false,
-            autocorrect: false,
-          ),
-          TextButton(
-              onPressed: () async {
-                try {
+            TextButton(
+                onPressed: () {
                   final email = _email.text;
                   final password = _password.text;
-                  await AuthServices.firebase()
-                      .createUser(email: email, password: password);
-                  await AuthServices.firebase().sendEmailVerification();
-                  if (context.mounted) {
-                    Navigator.of(context).pushNamed(emailVerifyRoute);
-                  }
-                } on EmailAlreadyInUseException {
-                  if (!context.mounted) {
-                    return;
-                  }
-                  await showErrorDialog(
-                    context,
-                    "Email Already Haven An Account!",
-                  );
-                } on InvalidEmailException {
-                  if (!context.mounted) {
-                    return;
-                  }
-                  await showErrorDialog(
-                    context,
-                    "Email is not Valid",
-                  );
-                } on WeakPasswordException {
-                  if (!context.mounted) {
-                    return;
-                  }
-                  await showErrorDialog(
-                    context,
-                    "Password is Weak Give Password 6 char long",
-                  );
-                }
-              },
-              child: const Text("Register")),
-          TextButton(
-              onPressed: () {
-                Navigator.of(context)
-                    .pushNamedAndRemoveUntil(loginRoute, (route) => false);
-              },
-              child: const Text("Already Have An Account,Login")),
-        ],
+                  context.read<AuthBloc>().add(
+                      AuthEventRegisterUser(email: email, password: password));
+                },
+                child: const Text("Register")),
+            TextButton(
+                onPressed: () {
+                  context.read<AuthBloc>().add(const AuthEventLogout());
+                },
+                child: const Text("Already Have An Account,Login")),
+          ],
+        ),
       ),
     );
   }

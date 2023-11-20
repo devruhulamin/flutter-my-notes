@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mynotes/constans/routes.dart';
-import 'package:mynotes/services/auth/auth_services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mynotes/services/auth/bloc/auth_bloc.dart';
+import 'package:mynotes/services/auth/bloc/auth_event.dart';
 
 class VerifiEmailPage extends StatelessWidget {
   const VerifiEmailPage({super.key});
@@ -18,17 +19,13 @@ class VerifiEmailPage extends StatelessWidget {
           const Text(
               "Please Verify Your Email Address by Clicking on the link"),
           TextButton(
-              onPressed: () async {
-                await AuthServices.firebase().sendEmailVerification();
+              onPressed: () {
+                context.read<AuthBloc>().add(AuthEventSendEmailVerification());
               },
               child: const Text("Resend Email")),
           TextButton(
               onPressed: () async {
-                await AuthServices.firebase().logout();
-                if (context.mounted) {
-                  Navigator.of(context)
-                      .pushNamedAndRemoveUntil(loginRoute, (route) => false);
-                }
+                context.read<AuthBloc>().add(const AuthEventLogout());
               },
               child: const Text("Restart"))
         ],

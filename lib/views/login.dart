@@ -4,7 +4,9 @@ import 'package:mynotes/constans/routes.dart';
 import 'package:mynotes/services/auth/auth_exception.dart';
 import 'package:mynotes/services/auth/bloc/auth_bloc.dart';
 import 'package:mynotes/services/auth/bloc/auth_event.dart';
+import 'package:mynotes/services/auth/bloc/auth_state.dart';
 import 'package:mynotes/utilities/dialogs/error_dialog.dart';
+import 'package:mynotes/utilities/dialogs/loading_dialogs.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,6 +18,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   late final TextEditingController _email;
   late final TextEditingController _password;
+  CloseDialog? closeDialogHandler;
   @override
   void initState() {
     _email = TextEditingController();
@@ -32,80 +35,92 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Login"),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          TextField(
-            controller: _email,
-            decoration: const InputDecoration(
-              hintText: "Enter Your Email",
-            ),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          TextField(
-            controller: _password,
-            decoration: const InputDecoration(
-              hintText: "Enter Your Password",
-            ),
-            obscureText: true,
-            enableSuggestions: false,
-            autocorrect: false,
-          ),
-          TextButton(
-              onPressed: () async {
-                final email = _email.text;
-                final password = _password.text;
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) async {
+        if (state is AuthStateLoggenOut) {
+          final closeDialog = closeDialogHandler;
+          if (!state.isLoading && closeDialog != null) {
+            closeDialog();
+            closeDialogHandler = null;
+          } else if (state.isLoading && closeDialog == null) {
+            closeDialogHandler =
+                showLoadingDialog(context: context, text: 'Loading.....');
+          }
 
-                try {
+          if (state.exception is WrongPasswordException) {
+            if (!context.mounted) {
+              return;
+            }
+            await showErrorDialog(
+              context,
+              "Given Password is Wrong!!",
+            );
+          } else if (state.exception is InvalidEmailException) {
+            if (!context.mounted) {
+              return;
+            }
+            await showErrorDialog(
+              context,
+              "Email is Invalid",
+            );
+          } else if (state.exception is UserNotFoundException) {
+            if (!context.mounted) {
+              return;
+            }
+            await showErrorDialog(
+              context,
+              "User Not Found",
+            );
+          } else if (state is GenericsAuthException) {
+            if (!context.mounted) {
+              return;
+            }
+            await showErrorDialog(
+              context,
+              "Something Went Wrong",
+            );
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Login"),
+          centerTitle: true,
+        ),
+        body: Column(
+          children: [
+            TextField(
+              controller: _email,
+              decoration: const InputDecoration(
+                hintText: "Enter Your Email",
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            TextField(
+              controller: _password,
+              decoration: const InputDecoration(
+                hintText: "Enter Your Password",
+              ),
+              obscureText: true,
+              enableSuggestions: false,
+              autocorrect: false,
+            ),
+            TextButton(
+                onPressed: () {
+                  final email = _email.text;
+                  final password = _password.text;
                   context
                       .read<AuthBloc>()
                       .add(AuthEventLogin(email: email, password: password));
-                } on WrongPasswordException {
-                  if (!context.mounted) {
-                    return;
-                  }
-                  await showErrorDialog(
-                    context,
-                    "Given Password is Wrong!!",
-                  );
-                } on InvalidEmailException {
-                  if (!context.mounted) {
-                    return;
-                  }
-                  await showErrorDialog(
-                    context,
-                    "Email is Invalid",
-                  );
-                } on UserNotFoundException {
-                  if (!context.mounted) {
-                    return;
-                  }
-                  await showErrorDialog(
-                    context,
-                    "User Not Found",
-                  );
-                } on GenericsAuthException {
-                  if (!context.mounted) {
-                    return;
-                  }
-                  await showErrorDialog(
-                    context,
-                    "Something Went Wrong",
-                  );
-                }
-              },
-              child: const Text("Login")),
-          TextButton(
-              onPressed: () {
-                Navigator.of(context)
-                    .pushNamedAndRemoveUntil(registerRoute, (route) => false);
-              },
-              child: const Text("Don't Have An Account,Register")),
-        ],
+                },
+                child: const Text("Login")),
+            TextButton(
+                onPressed: () {
+                  context.read<AuthBloc>().add(const AuthEventShouldRegister());
+                },
+                child: const Text("Don't Have An Account,Register")),
+          ],
+        ),
       ),
     );
   }

@@ -45,7 +45,7 @@ class _NotesPageState extends State<NotesPage> {
                 case MainActivity.logout:
                   final logout = await showLogoutDialog(context);
                   devtools.log(logout.toString());
-                  if (logout) {
+                  if (logout && mounted) {
                     context.read<AuthBloc>().add(const AuthEventLogout());
                   }
                   break;
