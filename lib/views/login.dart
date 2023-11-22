@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mynotes/constans/routes.dart';
 import 'package:mynotes/services/auth/auth_exception.dart';
 import 'package:mynotes/services/auth/bloc/auth_bloc.dart';
 import 'package:mynotes/services/auth/bloc/auth_event.dart';
@@ -38,15 +37,6 @@ class _LoginPageState extends State<LoginPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
         if (state is AuthStateLoggenOut) {
-          final closeDialog = closeDialogHandler;
-          if (!state.isLoading && closeDialog != null) {
-            closeDialog();
-            closeDialogHandler = null;
-          } else if (state.isLoading && closeDialog == null) {
-            closeDialogHandler =
-                showLoadingDialog(context: context, text: 'Loading.....');
-          }
-
           if (state.exception is WrongPasswordException) {
             if (!context.mounted) {
               return;
