@@ -106,6 +106,11 @@ class _LoginPageState extends State<LoginPage> {
                 child: const Text("Login")),
             TextButton(
                 onPressed: () {
+                  context.read<AuthBloc>().add(const AuthEventResetPassword());
+                },
+                child: const Text("Forget Your PassWord?")),
+            TextButton(
+                onPressed: () {
                   context.read<AuthBloc>().add(const AuthEventShouldRegister());
                 },
                 child: const Text("Don't Have An Account,Register")),

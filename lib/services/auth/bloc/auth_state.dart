@@ -15,7 +15,7 @@ class AuthStateInitilizing extends AuthState {
 }
 
 class AuthStateRegistering extends AuthState {
-  final Exception exception;
+  final Exception? exception;
 
   const AuthStateRegistering({required this.exception, required super.loading});
 }
@@ -31,6 +31,16 @@ class AuthStateLoginFailure extends AuthState {
 
   const AuthStateLoginFailure(
       {required this.exception, required super.loading});
+}
+
+class AuthStateResetPassword extends AuthState {
+  final Exception? exception;
+  final bool hasSentEmail;
+
+  const AuthStateResetPassword(
+      {required super.loading,
+      required this.exception,
+      required this.hasSentEmail});
 }
 
 class AuthStateNeedsVerification extends AuthState {

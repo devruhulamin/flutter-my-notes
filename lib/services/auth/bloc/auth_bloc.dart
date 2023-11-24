@@ -12,6 +12,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(state);
       },
     );
+    on<AuthEventShouldRegister>(
+      (event, emit) {
+        emit(const AuthStateRegistering(exception: null, loading: false));
+      },
+    );
     on<AuthEventRegisterUser>(
       (event, emit) async {
         try {
@@ -74,6 +79,44 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         } on Exception catch (e) {
           emit(AuthStateLoggenOut(exception: e, loading: false));
         }
+      },
+    );
+
+    on<AuthEventResetPassword>(
+      (event, emit) async {
+        emit(const AuthStateResetPassword(
+          loading: false,
+          exception: null,
+          hasSentEmail: false,
+        ));
+
+        final email = event.email;
+
+        if (email == null) {
+          return;
+        }
+
+        emit(const AuthStateResetPassword(
+          loading: true,
+          exception: null,
+          hasSentEmail: false,
+        ));
+        bool? isSendEmail;
+        Exception? exception;
+        try {
+          await provider.sendEmailVerification();
+          isSendEmail = true;
+          exception = null;
+        } on Exception catch (e) {
+          isSendEmail = true;
+          exception = e;
+        }
+
+        emit(AuthStateResetPassword(
+          loading: false,
+          exception: exception,
+          hasSentEmail: isSendEmail,
+        ));
       },
     );
   }
